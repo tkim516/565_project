@@ -40,8 +40,6 @@ dataset_imbalance_df = pd.DataFrame({
     'Revenue': ['True', 'False'], 
     'Proportion': [dataset_imbalance_series[0], dataset_imbalance_series[1]]})
 
-import pandas as pd
-
 # Define categorical variables for one-hot encoding
 cat_vars = ['OperatingSystems', 'Browser', 'Region', 'TrafficType', 'VisitorType', 'Weekend', 'Month']
 
