@@ -33,6 +33,8 @@ def load_and_cache_pickle(file_name):
 # Load dataset and models
 df = load_and_cache_csv('online_shoppers_intention.csv')
 ada_clf = load_and_cache_pickle('ada.pickle')
+dt_clf = load_and_cache_pickle('dt.pickle')
+rnd_forest_clf = load_and_cache_pickle('random_forest.pickle')
 
 dataset_imbalance_series = df['Revenue'].value_counts(normalize=True)
 
@@ -118,6 +120,7 @@ if "username" not in st.session_state:
   st.session_state.user_results = {}
   st.session_state.model_results = {}
 
+
   with st.form(key="username_form"):
     username_input = st.text_input("Enter your username")
     username_submit_button = st.form_submit_button(label="Enter Game")
@@ -145,11 +148,11 @@ elif "username" in st.session_state:
       st.session_state.quiz_complete = False
 
   def get_new_question_return_answer(question_df, question_num):
-      row = question_df.iloc[[question_num]]  # Use question_num to index directly
-      correct_answer = row['Revenue'].iloc[0]
+        row = question_df.iloc[[question_num]]  # Use question_num to index directly
+        correct_answer = row['Revenue'].iloc[0]
 
-      st.header(f'Question {question_num + 1} of {total_questions}')
-      st.dataframe(row[[
+        st.header(f'Question {question_num + 1} of {total_questions}')
+        st.dataframe(row[[
           'PageValues',
           'ProductRelated_Duration',
           'BounceRates',
@@ -158,15 +161,20 @@ elif "username" in st.session_state:
           'ProductRelated']], 
           hide_index=True)
       
-      row_encoded = X.iloc[[question_num]]
-      model_predicton = ada_clf.predict(row_encoded)
-            
-      return correct_answer, model_predicton
+        row_encoded = X.iloc[[question_num]]
+        ada_predicton = ada_clf.predict(row_encoded)
+        dt_prediction = dt_clf.predict(row_encoded)
+        rnd_forest_prediction = rnd_forest_clf.predict(row_encoded)
+
+
+        model_predictions_dict = {'AdaBoost': ada_predicton, 'Decision Tree': dt_prediction, 'Random Forest': rnd_forest_prediction }
+    
+        return correct_answer, model_predictions_dict
 
   # Show the current question
   if not st.session_state.quiz_complete:
       question_num = st.session_state.question_num
-      correct_answer, model_prediction = get_new_question_return_answer(question_df, question_num)
+      correct_answer, model_predictions_dict = get_new_question_return_answer(question_df, question_num)
 
       with st.form(key=f'user_prediction_form_{question_num}'):
           user_prediction = st.selectbox(
@@ -184,14 +192,24 @@ elif "username" in st.session_state:
                 st.session_state.user_results[question_num] = False
               #user_results[question_num] = False
                 st.error(f'Incorrect. The correct answer is {correct_answer}')
+            
+            for model, pred in model_predictions_dict.items():
+                # In session_state, create an empty list for each model
 
-            if model_prediction == correct_answer:
-                st.session_state.model_results[question_num] = True
-                st.header('MODEL SUCCESS')
+                if model not in st.session_state.model_results:
+                    st.session_state.model_results[model] = []
 
-            if model_prediction != correct_answer:
-                st.session_state.model_results[question_num] = False
-                st.header('FAIL')
+                #st.session_state.model_results[model][st.session_state.question_num] = (pred == correct_answer)
+                #st.write(st.session_state.model_results[model])
+                if pred == correct_answer:
+                    st.session_state.model_results[model].append(True) 
+                    st.write(st.session_state.model_results[model])
+                    st.header('MODEL SUCCESS')
+
+                elif pred != correct_answer:
+                    st.session_state.model_results[model].append(False)
+                    st.write(st.session_state.model_results[model])
+                    st.header('FAIL')
 
           # Increment the question number
             st.session_state.question_num += 1    
@@ -212,10 +230,6 @@ elif "username" in st.session_state:
             user_question_result = st.session_state.user_results[i]
             if user_question_result == True:
                 user_num_correct += 1
-            
-            model_question_result = st.session_state.model_results[i]
-            if model_question_result == True:
-                model_num_correct += 1
 
         if user_num_correct > model_num_correct:
             st.balloons()
@@ -224,9 +238,21 @@ elif "username" in st.session_state:
         elif user_num_correct < model_num_correct:
             st.header("Womp womp, you failed to beat the model.")
 
+        '''st.subheader(f'Your score: {user_num_correct} out of {total_questions}')
+        st.write(st.session_state.user_results)
+        
+        for model in model_predictions_dict:
+            #st.subheader(f'Model score: {model_num_correct} out of {total_questions}')
+            st.write(st.session_state.model_results[model])
+'''
+
+        # Calculate model scores for each model
+        model_scores = {}
+        for model, results in st.session_state.model_results.items():
+            model_scores[model] = sum(results)
+
         st.subheader(f'Your score: {user_num_correct} out of {total_questions}')
         st.write(st.session_state.user_results)
-        st.subheader(f'Model score: {model_num_correct} out of {total_questions}')
-        st.write(st.session_state.model_results)
 
-
+        for model, score in model_scores.items():
+            st.subheader(f'{model.capitalize()} score: {score} out of {total_questions}')
