@@ -5,17 +5,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import time
-
 from datetime import timedelta
-
-# Interactive game where students try to beat the model
-# Select model
-# Show dataset imbalance
-# Show feature importance for model
-# Show row of data
-# Allow players to guess if a customer will buy or not
-# Provide prediction from model and correct answer
-# Go to next question
 
 st.set_page_config(page_title = "Game", 
                    page_icon = "📚",
@@ -33,6 +23,11 @@ def load_and_cache_csv(file_name):
 def load_and_cache_pickle(file_name):
     with open(file_name, 'rb') as model_pickle:
         return pickle.load(model_pickle)
+
+@st.cache_resource
+def process_dataset(df, cat_vars):
+    df_encoded = pd.get_dummies(df, columns=cat_vars)
+    return df_encoded
 
 # Load dataset and models
 df = load_and_cache_csv('online_shoppers_intention.csv')
@@ -54,8 +49,9 @@ question_df = pd.read_csv('question_dataset.csv')
 train_df = pd.read_csv('online_shoppers_intention.csv')
 
 # One-hot encode categorical variables
-train_df_encoded = pd.get_dummies(train_df, columns=cat_vars)
-question_df_encoded = pd.get_dummies(question_df, columns=cat_vars)
+
+train_df_encoded = process_dataset(train_df, cat_vars)
+question_df_encoded = process_dataset(question_df, cat_vars)
 
 # Align features between train_df_encoded and question_df_encoded
 feature_order = train_df_encoded.columns
