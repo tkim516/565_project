@@ -26,7 +26,7 @@ st.set_page_config(
 # Centered Title using HTML and Markdown
 st.markdown(
     """
-    <h2 style="text-align: center; color: #69503c;">Interactive Machine Learning Model Challenge: Can You Beat the Model? 🎯</h2>
+    <h2 style="text-align: center; color: #69503c;">Interactive Model Challenge: Can You Beat the Model? 🎯</h2>
     """,
     unsafe_allow_html=True,
 )
