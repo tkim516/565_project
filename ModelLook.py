@@ -117,7 +117,7 @@ with col2:
         elif model2 == 'Ada Boost':
             st.image('ADA_CM.png')
         st.caption("Confusion Matrix of model predictions.")
-
+#change
     with tab7:
         st.write("### Classification Report")
         if model2 == 'Random Forest':
