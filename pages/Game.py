@@ -7,6 +7,10 @@ import pickle
 import time
 from datetime import timedelta
 
+import os
+print("Current Directory:", os.getcwd())
+print("File Exists:", os.path.exists('ada.pickle'))
+
 @st.cache_resource
 def load_and_cache_csv(file_name):
     return pd.read_csv(file_name)
@@ -203,7 +207,7 @@ elif session.username != None:
             st.write('')
             st.write('- Each round, you will see data from a customer\'s online shopping session. You will then predict if the customer will made a purchase (True) or not (False).')
             st.write('- To prevent information overload, you will only see features with the highest importance.')
-            st.write('- Your score is determined by correct predictions and the time taken to answer the question. Faster answers score more points.')
+            st.write('- Your score is determined by correct predictions and the time taken to answer the question.')
             st.write('')
             st.subheader('Example Row')
             st.dataframe(df.head(1)[[
