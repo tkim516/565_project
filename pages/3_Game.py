@@ -303,7 +303,6 @@ elif session.username != None:
                     session.model_results[model]['Duration'].append(value[1])
 
                     #st.write(st.session_state.model_results[model])
-                    #st.header('FAIL')
                             
 
           # Increment the question number
