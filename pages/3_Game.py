@@ -204,7 +204,7 @@ elif session.username != None:
   #session.user_results['username'] = session.username
     if not session.tutorial_complete:
         with st.form(key='tutorial_form'):
-            st.image('decision_tree_avatar.svg', width=400)
+            st.image('dt_avatar.svg', width=400)
             st.subheader(f'Hello {session.username}, my name is DT...')
             st.write('')
             st.write('- Each round,you will predict if the customer will made a purchase (True) or not (False).')
