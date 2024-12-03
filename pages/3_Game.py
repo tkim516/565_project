@@ -140,7 +140,7 @@ def get_model_predictions(models, X, question_num):
         
         model_prediction_dict[i] = [prediction, duration]
         #model_prediction_dict[i + ' duration'] = duration
-    
+
     return model_prediction_dict
 
 

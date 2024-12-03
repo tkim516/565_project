@@ -23,8 +23,7 @@ st.set_page_config(
 )
 
 st.markdown("<h1 style='text-align: center; color: #57cfff;'>Explore different machine learning models</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align: center;'>Visualize and compare performance</h3>", unsafe_allow_html=True)
-
+st.markdown("<h3 style='text-align: center;'>Understand the factors that determine if an e-commerce purchase will be made</h3>", unsafe_allow_html=True)
 
 # Insert an image (optional)
 st.image("ecommerce.png", use_column_width=True)
