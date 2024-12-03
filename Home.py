@@ -19,30 +19,15 @@ import warnings
 # Setting the page configuration
 st.set_page_config(
     page_title="Home",
-    page_icon="🎮",
     layout="centered"
 )
 
-# Centered Title using HTML and Markdown
-st.markdown(
-    """
-    <h2 style="text-align: center; color: #69503c;">Interactive Machine Learning Model Challenge: Can You Beat the Model? 🎯</h2>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("<h1 style='text-align: center; color: #57cfff;'>Explore different machine learning models</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>Visualize and compare performance</h3>", unsafe_allow_html=True)
 
-# Subtitle with styling
-st.markdown(
-    """
-    <h3 style="text-align: center; color: #1c2d8f; font-family: Arial, sans-serif;">
-    Test your intuition against machine learning models and learn about data science along the way!
-    </h3>
-    """,
-    unsafe_allow_html=True,
-)
 
 # Insert an image (optional)
-st.image("interactive_game.jpg", caption="Compete with AI and enhance your data science skills!", use_column_width=True)
+st.image("ecommerce.png", use_column_width=True)
 
 # Sidebar navigation header
 with st.sidebar:
@@ -70,7 +55,7 @@ with st.expander("**What can you do with this app?**"):
     
     🔑 **Feature Importance**: Discover which features are most influential in the model's predictions.
     
-    🎲 **Interactive Game**: Guess whether a customer will buy or not based on the data. Compare your intuition with the model's prediction.
+    🎲 **Interactive Game**: Predict whether a customer will buy or not based on the data. Compare your intuition with the model's prediction.
 
     """)
 
@@ -79,9 +64,8 @@ with st.expander("**What can you do with this app?**"):
 # Add a footer
 st.markdown(
     """
-    <hr>
     <p style="text-align: center; color: #777; font-size: 14px; font-family: Arial, sans-serif;">
-    Made with ❤️ by your Machine Learning team.
+    By Tyler, Shivam, Michael, and Elan.
     </p>
     """,
     unsafe_allow_html=True,

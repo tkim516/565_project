@@ -5,16 +5,10 @@ st.set_page_config(page_title="Upload Data",
                    page_icon="📚",
                    layout="wide")
 
-# Title and description
-st.markdown(
-    """
-    <h2 style="text-align: center; color: #57cfff;">Upload Your Shopper Data</h2>
-    <p style="text-align: center; font-size: 18px;">
-    Start by uploading your CSV file to unlock insights about shopper conversion.
-    </p>
-    """,
-    unsafe_allow_html=True,
-)
+
+st.markdown("<h1 style='text-align: center; color: #57cfff;'>Upload your shopper data</h1>", unsafe_allow_html=True)
+
+st.markdown("<h3 style='text-align: center;'>Unlock insights about shopper buying behaviors</h3>", unsafe_allow_html=True)
 
 # Sidebar information
 with st.sidebar:
