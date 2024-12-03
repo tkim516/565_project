@@ -7,14 +7,6 @@ import pickle
 import time
 from datetime import timedelta
 
-st.set_page_config(page_title = "Game", 
-                   page_icon = "📚",
-                   layout= "wide")
-#if 'tutorial_complete' in st.session_state and st.session_state.tutorial_complete == False:
-#   st.title('Tutorial')
-
-st.title('Predict if a customer will make a purchase')
-
 @st.cache_resource
 def load_and_cache_csv(file_name):
     return pd.read_csv(file_name)
@@ -28,6 +20,35 @@ def load_and_cache_pickle(file_name):
 def process_dataset(df, cat_vars):
     df_encoded = pd.get_dummies(df, columns=cat_vars)
     return df_encoded
+
+class SessionState:
+    def __init__(self):
+        self.username = None
+        self.user_results = {}
+        self.model_results = {}
+        self.quiz_complete = False
+        self.tutorial_complete = False
+        self.question_num = 0
+        self.user_start_time = None
+        self.user_duration = {}
+    
+    def reset(self):
+        self.username = ''
+        self.user_results = {}
+        self.model_results = {}
+        self.quiz_complete = False
+        self.tutorial_complete = False
+        self.question_num = 0
+        self.user_start_time = None
+        self.user_duration = {}
+
+st.set_page_config(page_title = "Game", 
+                   page_icon = "📚",
+                   layout= "wide")
+#if 'tutorial_complete' in st.session_state and st.session_state.tutorial_complete == False:
+#   st.title('Tutorial')
+
+st.title('Predict if a customer will make a purchase')
 
 # Load dataset and models
 df = load_and_cache_csv('online_shoppers_intention.csv')
@@ -49,7 +70,6 @@ question_df = pd.read_csv('question_dataset.csv')
 train_df = pd.read_csv('online_shoppers_intention.csv')
 
 # One-hot encode categorical variables
-
 train_df_encoded = process_dataset(train_df, cat_vars)
 question_df_encoded = process_dataset(question_df, cat_vars)
 
@@ -85,18 +105,25 @@ def get_new_question_return_answer(question_df, question_num):
           'ProductRelated']], 
           hide_index=True,
           width=1500)
-      
-        row_encoded = X.iloc[[question_num]]
-        ada_predicton = ada_clf.predict(row_encoded)
-        dt_prediction = dt_clf.predict(row_encoded)
-        rnd_forest_prediction = rnd_forest_clf.predict(row_encoded)
-
-        model_predictions_dict = {'AdaBoost': ada_predicton, 'Decision Tree': dt_prediction, 'Random Forest': rnd_forest_prediction }
     
-        return correct_answer, model_predictions_dict
+        return correct_answer
 
 
-# Custom CSS to modify sidebar width and font size
+models = {'AdaBoost': ada_clf, 'Decision Tree': dt_clf, 'Random Forest': rnd_forest_clf}
+
+def get_model_predictions(models, X, question_num):
+    row_encoded = X.iloc[[question_num]]
+    model_prediction_dict = {}
+    for i, j in models.items():
+        start_time = time.perf_counter()
+        prediction = j.predict(row_encoded)[0]
+        duration = timedelta(seconds=time.perf_counter()-start_time)
+        
+        model_prediction_dict[i] = [prediction, duration]
+        #model_prediction_dict[i + ' duration'] = duration
+    
+    return model_prediction_dict
+
 st.markdown(
     """
     <style>
@@ -133,15 +160,14 @@ with st.sidebar:
     st.header('ProductRelated (Count)')
     st.write('Number of product-related pages visited during the session')
 
-
-# Ideal solution
-# Game screen with username and instructions
-# Username box hidden question 1 by 1 with feedback until 5 questions reached
 total_questions = 7
 
-if "username" not in st.session_state:
-  st.session_state.user_results = {}
-  st.session_state.model_results = {}
+if 'session_state' not in st.session_state:
+    st.session_state['session_state'] = SessionState()
+
+session = st.session_state['session_state']
+
+if session.username == None:
 
   st.markdown(
     """
@@ -155,68 +181,70 @@ if "username" not in st.session_state:
     unsafe_allow_html=True)
 
   with st.form(key="username_form"):
-    st.markdown('<p class="big-font">Enter your username</p>', unsafe_allow_html=True)
+    st.markdown('<p class="big-font">Username</p>', unsafe_allow_html=True)
     username_input = st.text_input("", key="username_input")
     username_submit_button = st.form_submit_button(label="Submit")
     
-    #st.image('.webp')
-    # Save the username to session state upon form submission
   if username_submit_button:
         if username_input.strip():
-                st.session_state.username = username_input.strip()
-                st.success(f"Welcome, {st.session_state.username}!")
+                session.username = username_input.strip()
+                st.success(f"Welcome, {session.username}!")
                 time.sleep(1)  # Brief pause to show the success message
                 st.rerun()  # Re-run the app to update the state
         else:
             st.error("Username cannot be empty. Please try again.") 
        
-elif "username" in st.session_state:
-  #user_results_dict['username'] = st.session_state.username
-  #st.session_state.user_results = user_results_dict
-  st.session_state.user_results['username'] = st.session_state.username
+elif session.username != None:
+  #session.user_results['username'] = session.username
+    if not session.tutorial_complete:
+        with st.form(key='tutorial_form'):
+            st.image('decision_tree_avatar.svg', width=400)
+            st.subheader(f'Hello {session.username}, my name is DT...')
+            st.write('')
+            st.write('- Each round, you will see data from a customer\'s online shopping session. You will then predict if the customer will made a purchase (True) or not (False).')
+            st.write('- To prevent information overload, you will only see features with the highest importance.')
+            st.write('- Your score is determined by correct predictions and the time taken to answer the question. Faster answers score more points.')
+            st.write('')
+            st.subheader('Example Row')
+            st.dataframe(df.head(1)[[
+                'PageValues',
+                'ProductRelated_Duration',
+                'BounceRates',
+                'ExitRates',
+                'Administrative_Duration',
+                'ProductRelated']], 
+                hide_index=True,
+                width=1500)                  
+            
+            st.subheader('Game Tips')
 
-  if "question_num" not in st.session_state:
-    st.session_state.question_num = 0
-  if "quiz_complete" not in st.session_state:
-    st.session_state.quiz_complete = False
-  if 'user_start_time' not in st.session_state:
-    st.session_state.user_start_time = None
-  if 'tutorial_complete' not in st.session_state:
-    st.session_state.tutorial_complete = False
-  
-    with st.form(key='tutorial_form'):
-        st.image('decision_tree_avatar.svg', width=400)
-        st.write(f'Hello {st.session_state.username}, my name is DT.')
-        st.write('In each round, you will see data from a customer\'s online shopping session. You will then predict if the customer will made a purchase.')
-        st.write('Here is an example:')
-        st.dataframe(df.head(1))
+            with st.expander('Tip 1'):
+                st.write('PageValues is the most important feature, higher values indicate a higher likelihood of the prediction being True.')
+                st.write()
 
-        with st.expander('Tip 1'):
-            st.write('alkdghalkshdalsh')
+            with st.expander('Tip 2'):
+                st.write('alkdghalkshdalsh')
 
-        with st.expander('Tip 2'):
-            st.write('alkdghalkshdalsh')
+            with st.expander('Tip 3'):
+                st.write('alkdghalkshdalsh')
 
-        with st.expander('Tip 3'):
-            st.write('alkdghalkshdalsh')
-        
-        tutorial_complete_button = st.form_submit_button(label="Enter game")
+            tutorial_complete_button = st.form_submit_button(label="Enter game")
 
+            if tutorial_complete_button:
+                session.tutorial_complete = True
+                st.rerun()
 
-        if tutorial_complete_button:
-            st.session_state.tutorial_complete = True
-        
-        st.stop()
+            st.stop()
 
   # Show the current question
-  if not st.session_state.quiz_complete:
-      question_num = st.session_state.question_num
-      correct_answer, model_predictions_dict = get_new_question_return_answer(question_df, question_num)
-      
-      if st.session_state.user_start_time is None:
-        st.session_state.user_start_time = time.perf_counter()
+    if not session.quiz_complete:
+      correct_answer = get_new_question_return_answer(question_df, session.question_num)
+      model_predictions = get_model_predictions(models, X, session.question_num)
 
-      with st.form(key=f'user_prediction_form_{question_num}'):
+      if session.user_start_time is None:
+        session.user_start_time = time.perf_counter()
+
+      with st.form(key=f'user_prediction_form_{session.question_num}'):
           user_prediction = st.selectbox(
               label='Predict if the customer will buy a product',
               options=[True, False]
@@ -224,77 +252,112 @@ elif "username" in st.session_state:
           submit_button = st.form_submit_button(label='Submit')
       if submit_button:
 
-            user_duration = timedelta(seconds=time.perf_counter()-st.session_state.user_start_time)
-            st.session_state.user_start_time = None
+            user_duration = timedelta(seconds=time.perf_counter()-session.user_start_time)
+            session.user_start_time = None
+
+            if not session.user_results:
+                session.user_results = {'Correct': [], 'Duration': []}
 
             if user_prediction == correct_answer:
-                st.session_state.user_results[question_num] = True
-                #user_results_dict[question_num] = True
+                session.user_results['Correct'].append(True) 
+                session.user_results['Duration'].append(user_duration)  
+              
                 st.success('Correct!')
 
             if user_prediction != correct_answer:
-                st.session_state.user_results[question_num] = False
-              #user_results[question_num] = False
+                session.user_results['Correct'].append(False) 
+                session.user_results['Duration'].append(user_duration)
+                
                 st.error(f'Incorrect. The correct answer is {correct_answer}')
-            
-            for model, pred in model_predictions_dict.items():
+                        
+            for model, value in model_predictions.items():
                 # In session_state, create an empty list for each model
 
-                if model not in st.session_state.model_results:
-                    st.session_state.model_results[model] = []
+                if model not in session.model_results:
+                    session.model_results[model] = {'Correct': [], 'Duration': []}
 
                 #st.session_state.model_results[model][st.session_state.question_num] = (pred == correct_answer)
                 #st.write(st.session_state.model_results[model])
-                if pred == correct_answer:
-                    st.session_state.model_results[model].append(True) 
+                
+                if value[0] == correct_answer:
+                    session.model_results[model]['Correct'].append(True) 
+                    session.model_results[model]['Duration'].append(value[1])
                     #st.write(st.session_state.model_results[model])
                     #st.header('MODEL SUCCESS')
 
-                elif pred != correct_answer:
-                    st.session_state.model_results[model].append(False)
+                elif value[0] != correct_answer:
+                    session.model_results[model]['Correct'].append(False)
+                    session.model_results[model]['Duration'].append(value[1])
+
                     #st.write(st.session_state.model_results[model])
                     #st.header('FAIL')
-                
-                time.sleep(0.5)
-            
-            st.write(user_duration)
+                            
 
           # Increment the question number
-            st.session_state.question_num += 1    
-            st.session_state.user_duration = None
+            session.question_num += 1    
+            session.user_duration = None
       
           # Check if the quiz is complete
-            if st.session_state.question_num == total_questions:
-                st.session_state.quiz_complete = True
+            if session.question_num == total_questions:
+                session.quiz_complete = True
             
-            st.header('Generating next question...')
-            time.sleep(2)
+            #st.header('Generating next question...')
+            time.sleep(0.5)
             st.rerun()
 
-
   # Show the completion message
-  if st.session_state.quiz_complete:
-        user_num_correct = 0
-        model_num_correct = 0
-        for i in range(total_questions):
-            user_question_result = st.session_state.user_results[i]
-            if user_question_result == True:
-                user_num_correct += 1
-        '''
-        if user_num_correct > model_num_correct:
-            st.balloons()
-            st.header("Great job, you beat the model!")
+    if session.quiz_complete:
+        st.balloons()
+        
+        # User Score
+        user_score = sum(correct for correct in session.user_results['Correct'])
+
+        # Total User Duration
+        total_user_duration = sum(
+            session.user_results['Duration'],  # Summing durations directly
+            timedelta()  # Initial value for sum
+        )
+
+        # Calculate average duration (total duration divided by total questions)
+        user_avg_duration = total_user_duration / total_questions
+
+        # Model Scores and Durations
+        model_scores = {model: sum(correct for correct in results['Correct']) for model, results in session.model_results.items()}
+
+        model_durations = {}
+        for model, results in session.model_results.items():
+            # Total duration for each model
+            total_duration = sum(
+                results['Duration'],  # Summing durations directly
+                timedelta()  # Initial value for sum
+            )
+
+            # Average duration
+            avg_duration = total_duration / total_questions
+            model_durations[model] = {"average_duration": avg_duration}
+
+        st.subheader(f'Your score: {user_score} out of {total_questions}')
+        st.subheader(f'Average time to answer: {str(user_avg_duration)[5:]}')
+
+        tab1, tab2, tab3 = st.tabs(["Decision Tree", "Random Forest", "AdaBoost"])
+
+        with tab1:
+            st.subheader(f'Decision Tree score: {model_scores['Decision Tree']} out of {total_questions}')
+            st.subheader(f'Average time to answer: {str(model_durations['Decision Tree']['average_duration'])[6:]}')
             
-        elif user_num_correct < model_num_correct:
-            st.header("Womp womp, you failed to beat the model.")
-        '''
-        # Calculate model scores for each model
-        model_scores = {}
-        for model, results in st.session_state.model_results.items():
-            model_scores[model] = sum(results)
+            with st.expander('Feature importance'):
+                st.image('/Users/tyler/Downloads/IME-565/final_project/DT_FI.png')
 
-        st.subheader(f'Your score: {user_num_correct} out of {total_questions}')
-        st.write(st.session_state.user_results)
-
-        for model, score in model_scores.items():
-            st.subheader(f'{model.capitalize()} score: {score} out of {total_questions}')
+        with tab2:
+            st.subheader(f'Random Forest score: {model_scores['Random Forest']} out of {total_questions}')
+            st.subheader(f'Average time to answer: {str(model_durations['Random Forest']['average_duration'])[6:]}')
+            
+            with st.expander('Feature importance'):
+                st.image('/Users/tyler/Downloads/IME-565/final_project/RF_FI.png')
+            
+        with tab3:
+            st.subheader(f'AdaBoost score: {model_scores['AdaBoost']} out of {total_questions}')
+            st.subheader(f'Average time to answer: {str(model_durations['AdaBoost']['average_duration'])[6:]}')
+            
+            with st.expander('Feature importance'):
+                st.image('/Users/tyler/Downloads/IME-565/final_project/ADA_FI.png')

@@ -2,13 +2,14 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="Upload Data", 
-                   page_icon="📚")
+                   page_icon="📚",
+                   layout="wide")
 
 # Title and description
 st.markdown(
     """
-    <h2 style="text-align: center; color: #69503c;">Upload Your Shopper Data</h2>
-    <p style="text-align: center; font-size: 18px; color: #1c2d8f;">
+    <h2 style="text-align: center; color: #57cfff;">Upload Your Shopper Data</h2>
+    <p style="text-align: center; font-size: 18px;">
     Start by uploading your CSV file to unlock insights about shopper conversion.
     </p>
     """,
@@ -54,7 +55,7 @@ with st.expander("**How to prepare your data?** 📤"):
 
 # File uploader
 uploaded_file = st.file_uploader(
-    "Upload your shopper CSV file below 👇",
+    "",
     type=["csv"],
     help="Ensure the file is in CSV format with the required columns."
 )
@@ -103,6 +104,4 @@ elif "user_data" in st.session_state:
     st.write(f"💰 **Total Revenue Generated:** {total_revenue}")
     st.write(f"📖 **Average Page Values:** {avg_page_values}")
     st.write(f"🌐 **Most Used Browser:** {most_used_browser}")
-else:
-    st.warning("Please upload your shopper data to proceed.")
 
