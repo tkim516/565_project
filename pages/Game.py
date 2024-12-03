@@ -56,9 +56,22 @@ st.title('Predict if a customer will make a purchase')
 
 # Load dataset and models
 df = load_and_cache_csv('online_shoppers_intention.csv')
-ada_clf = load_and_cache_pickle('ada.pickle')
-dt_clf = load_and_cache_pickle('dt.pickle')
-rnd_forest_clf = load_and_cache_pickle('random_forest.pickle')
+
+ada_pickle = open('ada.pickle', 'rb') 
+ada_clf = pickle.load(ada_pickle)
+ada_pickle.close()
+
+dt_pickle = open('dt.pickle', 'rb') 
+dt_clf = pickle.load(dt_pickle)
+dt_pickle.close()
+
+rnd_forest_pickle = open('random_forest.pickle', 'rb') 
+rnd_forest_clf = pickle.load(rnd_forest_pickle)
+rnd_forest_pickle.close()
+
+#ada_clf = load_and_cache_pickle('model_pickles/ada.pickle')
+#dt_clf = load_and_cache_pickle('model_pickles/dt.pickle')
+#rnd_forest_clf = load_and_cache_pickle('model_pickles/random_forest.pickle')
 
 dataset_imbalance_series = df['Revenue'].value_counts(normalize=True)
 
