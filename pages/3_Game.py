@@ -207,32 +207,39 @@ elif session.username != None:
             st.image('decision_tree_avatar.svg', width=400)
             st.subheader(f'Hello {session.username}, my name is DT...')
             st.write('')
-            st.write('- Each round, you will see data from a customer\'s online shopping session. You will then predict if the customer will made a purchase (True) or not (False).')
-            st.write('- To prevent information overload, you will only see features with the highest importance.')
+            st.write('- Each round,you will predict if the customer will made a purchase (True) or not (False).')
+            st.write('- To prevent information overload, you will only see features with the highest importance. You can see more info about these features on the sidebar.')
             st.write('- Your score is determined by correct predictions and the time taken to answer the question.')
             st.write('')
             st.subheader('Example Row')
-            st.dataframe(df.head(1)[[
+            example_row = df.iloc[76]
+
+            # Create a DataFrame from the selected row for display
+            example_row_df = example_row[[
                 'PageValues',
                 'ProductRelated_Duration',
                 'BounceRates',
                 'ExitRates',
                 'Administrative_Duration',
-                'ProductRelated']], 
-                hide_index=True,
-                width=1500)                  
+                'ProductRelated'
+            ]].to_frame().T  # Convert to DataFrame and transpose to display as a row
+
+            # Display the DataFrame in Streamlit
+            st.dataframe(example_row_df, hide_index=True, width=1500)             
             
             st.subheader('Game Tips')
 
             with st.expander('Tip 1'):
-                st.write('PageValues is the most important feature, higher values indicate a higher likelihood of the prediction being True.')
-                st.write()
+                st.write('PageValues is the most important feature. Higher values are correlated with a shopper making a purchase.')
+                st.write(f'Values range from {round(df['PageValues'].min(), 2)} to {round(df['PageValues'].max(), 2)}')
 
             with st.expander('Tip 2'):
-                st.write('alkdghalkshdalsh')
-
+                st.write('ProductRelated_Duration is the 2nd most important feature. Higher values are typically correlated with a shopper making a purchase.')
+                st.write(f'Values range from {round(df['ProductRelated_Duration'].min(), 2)} to {round(df['ProductRelated_Duration'].max(), 2)}')
+            
             with st.expander('Tip 3'):
-                st.write('alkdghalkshdalsh')
+                st.write('BounceRates is the 3rd most important feature. Lower values indicate that a shopper is more likely to make a purchase.')
+                st.write(f'Values range from {round(df['BounceRates'].min(), 2)} to {round(df['BounceRates'].max(), 2)}')
 
             tutorial_complete_button = st.form_submit_button(label="Enter game")
 
@@ -342,28 +349,33 @@ elif session.username != None:
             avg_duration = total_duration / total_questions
             model_durations[model] = {"average_duration": avg_duration}
 
+        st.subheader("")
         st.subheader(f'Your score: {user_score} out of {total_questions}')
         st.subheader(f'Average time to answer: {str(user_avg_duration)[5:]}')
+        st.write("")
 
         tab1, tab2, tab3 = st.tabs(["Decision Tree", "Random Forest", "AdaBoost"])
 
         with tab1:
+            st.write("")
             st.subheader(f'Decision Tree score: {model_scores['Decision Tree']} out of {total_questions}')
             st.subheader(f'Average time to answer: {str(model_durations['Decision Tree']['average_duration'])[6:]}')
-            
+            st.write("")
             with st.expander('Feature importance'):
-                st.image('/Users/tyler/Downloads/IME-565/final_project/DT_FI.png')
+                st.image('DT_FI.png')
 
         with tab2:
+            st.write("")
             st.subheader(f'Random Forest score: {model_scores['Random Forest']} out of {total_questions}')
             st.subheader(f'Average time to answer: {str(model_durations['Random Forest']['average_duration'])[6:]}')
-            
+            st.write("")
             with st.expander('Feature importance'):
-                st.image('/Users/tyler/Downloads/IME-565/final_project/RF_FI.png')
+                st.image('RF_FI.png')
             
         with tab3:
+            st.write("")
             st.subheader(f'AdaBoost score: {model_scores['AdaBoost']} out of {total_questions}')
             st.subheader(f'Average time to answer: {str(model_durations['AdaBoost']['average_duration'])[6:]}')
-            
+            st.write("")
             with st.expander('Feature importance'):
-                st.image('/Users/tyler/Downloads/IME-565/final_project/ADA_FI.png')
+                st.image('ADA_FI.png')
