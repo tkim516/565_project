@@ -264,6 +264,7 @@ elif session.username != None:
           )
           submit_button = st.form_submit_button(label='Submit')
       if submit_button:
+            st.dataframe(model_predictions)
 
             user_duration = timedelta(seconds=time.perf_counter()-session.user_start_time)
             session.user_start_time = None
